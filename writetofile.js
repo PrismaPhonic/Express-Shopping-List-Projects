@@ -3,10 +3,10 @@ const process = require("process");
 const util = require('util');
 
 const readFilePromise = util.promisify(fs.readFile);
-const appendFilePromise = util.promisify(fs.appendFile);
+const writeFilePromise = util.promisify(fs.writeFile);
 
 async function write(data, output) {
-  return appendFilePromise(output, data, "utf8");
+  return writeFilePromise(output, data, "utf8");
 }
 
 function read(path) {

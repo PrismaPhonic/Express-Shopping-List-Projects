@@ -1,74 +1,60 @@
 const express = require("express");
 const router = new express.Router();
+const { read, write } = require("../writetofile");
+const Product = require("../productClass");
+
+const file = 'items.json'
 
 let nextId = 6;
 
-const items = [
-  {
-    id: 1,
-    product: 'orange',
-    price: '$5'
-  },
-  {
-    id: 2,
-    product: 'milk',
-    price: '$1000'
-  },
-  {
-    id: 3,
-    product: 'sheep',
-    price: '$2'
-  },
-  {
-    id: 4,
-    product: 'chainsaw',
-    price: '$0.50'
-  },
-  {
-    id: 5,
-    product: 'juan',
-    price: '$0.25'
-  },
-];
+// let items = JSON.parse(read(file));
 
 /** GET /items: render list of shopping items */
 
-router.get("", (req, res) => {
-  return res.json(items);
+router.get("", async (req, res) => {
+  let itemsJSON = await read(file);
+  return res.json(JSON.parse(itemsJSON));
 });
 
 /** POST /items: append shopping items with form data */
 
 router.post("", (req, res) => {
-  newProduct = req.body.newproduct;
-  newProductPrice = req.body.price;
-  items.push({ id: nextId, product: newProduct, price: newProductPrice });
-  nextId++;
+  productName = req.body.productname;
+  productPrice = req.body.price;
+  let newProduct = Product.addProduct(productName, productPrice);
   return res.redirect('/items');
 });
 
 /** GET /items/:id: render product name and price */
 
-router.get("/:id", (req, res) => {
+router.get("/:id", async (req, res) => {
+  let itemsJSON = await read(file);
+  let items = JSON.parse(itemsJSON);
   const index = items.findIndex(item => item.id === +req.params.id)
   return res.json(items[index]);
 });
 
 /** PATCH /items/[id]: patch item, return modified item */
 
-router.patch("/:id", (req, res) => {
+router.patch("/:id", async (req, res) => {
+  let itemsJSON = await read(file);
+  let items = JSON.parse(itemsJSON);
   const index = items.findIndex(item => item.id === +req.params.id)
   items[index].product = req.body.editproduct || items[index].product;
   items[index].price = req.body.editprice || items[index].price;
+  await write(JSON.stringify(items), file);
   return res.json(items[index]);
 });
 
 
 /** DELETE /items/[id]: delete item, return status */
 
-router.delete("/:id", (req, res) => {
+router.delete("/:id", async (req, res) => {
+  let itemsJSON = await read(file);
+  let items = JSON.parse(itemsJSON);
   const index = items.findIndex(item => item.id === +req.params.id)
   items.splice(index, 1);
+  await write(JSON.stringify(items), file);
   return res.json({ message: "Deleted" });
 });
 
